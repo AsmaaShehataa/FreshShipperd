@@ -14,18 +14,38 @@ from .models import (
     Item, InternationalBox, BoxItem, DomesticOrder, ItemRequest, StatusLog
 )
 
-# Custom User Admin
+# Custom User Admin - UPDATED for email as username
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'role', 'phone', 'is_staff')
+    # Change 'username' to 'email' in list_display
+    list_display = ('email', 'first_name', 'last_name', 'role', 'phone', 'is_staff')
     list_filter = ('role', 'is_staff', 'is_superuser')
-    fieldsets = UserAdmin.fieldsets + (
-        ('Shipperd Information', {'fields': ('role', 'phone', 'country', 'city', 'address')}),
+    
+    # Fieldsets - remove 'username' field, keep 'email'
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal Info', {'fields': ('first_name', 'last_name', 'phone', 'country', 'city', 'address')}),
+        ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important Dates', {'fields': ('last_login', 'date_joined')}),
     )
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Shipperd Information', {'fields': ('role', 'phone', 'country', 'city', 'address')}),
+    
+    # Add fieldsets - use 'email' instead of 'username'
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2', 'first_name', 'last_name', 'role', 'phone', 'country', 'city', 'address'),
+        }),
     )
+    
+    # Search by email instead of username
+    search_fields = ('email', 'first_name', 'last_name', 'phone')
+    
+    # Order by email instead of username
+    ordering = ('email',)
+    
+    # Filter by email in horizontal filter
+    filter_horizontal = ('groups', 'user_permissions',)
 
-# Register your models here
+# Update other admin classes that reference 'customer__username' to 'customer__email'
 @admin.register(Warehouse)
 class WarehouseAdmin(admin.ModelAdmin):
     list_display = ('name', 'city', 'country')
@@ -35,25 +55,25 @@ class WarehouseAdmin(admin.ModelAdmin):
 class LockerAdmin(admin.ModelAdmin):
     list_display = ('code', 'customer', 'warehouse')
     list_filter = ('warehouse',)
-    search_fields = ('code', 'customer__username')
+    search_fields = ('code', 'customer__email', 'customer__first_name', 'customer__last_name')  # Changed from username to email
 
 @admin.register(InternationalOrder)
 class InternationalOrderAdmin(admin.ModelAdmin):
     list_display = ('marketplace', 'marketplace_order_ref', 'customer', 'status', 'total_amount')
     list_filter = ('marketplace', 'status')
-    search_fields = ('marketplace_order_ref', 'customer__username')
+    search_fields = ('marketplace_order_ref', 'customer__email', 'customer__first_name', 'customer__last_name')  # Changed
 
 @admin.register(ShipmentLabel)
 class ShipmentLabelAdmin(admin.ModelAdmin):
     list_display = ('barcode_number', 'customer', 'international_order', 'is_printed')
     list_filter = ('is_printed',)
-    search_fields = ('barcode_number', 'customer__username')
+    search_fields = ('barcode_number', 'customer__email', 'customer__first_name', 'customer__last_name')  # Changed
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
     list_display = ('tracking_number', 'customer', 'category', 'status', 'condition')
     list_filter = ('status', 'condition', 'category')
-    search_fields = ('tracking_number', 'customer__username')
+    search_fields = ('tracking_number', 'customer__email', 'customer__first_name', 'customer__last_name')  # Changed
 
 @admin.register(InternationalBox)
 class InternationalBoxAdmin(admin.ModelAdmin):
@@ -70,13 +90,13 @@ class BoxItemAdmin(admin.ModelAdmin):
 class DomesticOrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'customer', 'status', 'created_at')
     list_filter = ('status',)
-    search_fields = ('customer__username',)
+    search_fields = ('customer__email', 'customer__first_name', 'customer__last_name')  # Changed
 
 @admin.register(ItemRequest)
 class ItemRequestAdmin(admin.ModelAdmin):
     list_display = ('subject', 'customer', 'status', 'created_at')
     list_filter = ('status',)
-    search_fields = ('subject', 'customer__username')
+    search_fields = ('subject', 'customer__email', 'customer__first_name', 'customer__last_name')  # Changed
 
 @admin.register(StatusLog)
 class StatusLogAdmin(admin.ModelAdmin):
