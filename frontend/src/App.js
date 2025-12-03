@@ -5,18 +5,18 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import InternationalBoxes from './components/InternationalBoxes';
 import Sidebar from './components/Sidebar';
+import SettingsPage from './components/SettingsPage';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Check authentication on app load
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     const storedUser = localStorage.getItem('user');
-    
+
     if (token && storedUser) {
       setIsAuthenticated(true);
       setUser(JSON.parse(storedUser));
@@ -38,15 +38,42 @@ function App() {
         body: JSON.stringify({ refresh: refreshToken }),
       }).catch(console.error);
     }
-    
+
     // Clear local storage
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
-    
+
     // Update state
     setIsAuthenticated(false);
     setUser(null);
+  };
+
+  const handleProfileUpdated = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
+  const ProtectedRoute = ({ children }) => {
+    if (!isAuthenticated) {
+      return <Navigate to="/login" />;
+    }
+    return children;
+  };
+
+  const Layout = ({ children }) => {
+    return (
+      <div className="flex min-h-screen bg-gray-100">
+        <Sidebar
+          user={user}
+          onLogout={handleLogout}
+          onProfileUpdated={handleProfileUpdated}
+        />
+        <div className="flex-1 ml-64">
+          {children}
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -60,56 +87,53 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
-            isAuthenticated ? 
-              <Navigate to="/dashboard" /> : 
+            isAuthenticated ? (
+              <Navigate to="/dashboard" />
+            ) : (
               <Login setIsAuthenticated={setIsAuthenticated} setUser={setUser} />
-          } 
+            )
+          }
         />
-        
-        <Route 
-          path="/dashboard" 
+
+        <Route
+          path="/dashboard"
           element={
-            isAuthenticated ? (
-              <div className="flex min-h-screen bg-gray-100">
-                <Sidebar 
-                  activeTab={activeTab} 
-                  setActiveTab={setActiveTab} 
-                  user={user}
-                  onLogout={handleLogout}
-                />
-                <div className="flex-1 ml-64">
-                  <Dashboard />
-                </div>
-              </div>
-            ) : <Navigate to="/login" />
-          } 
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          }
         />
-        
-        <Route 
-          path="/boxes" 
+
+        <Route
+          path="/boxes"
           element={
-            isAuthenticated ? (
-              <div className="flex min-h-screen bg-gray-100">
-                <Sidebar 
-                  activeTab={activeTab} 
-                  setActiveTab={setActiveTab} 
-                  user={user}
-                  onLogout={handleLogout}
-                />
-                <div className="flex-1 ml-64">
-                  <InternationalBoxes />
-                </div>
-              </div>
-            ) : <Navigate to="/login" />
-          } 
+            <ProtectedRoute>
+              <Layout>
+                <InternationalBoxes />
+              </Layout>
+            </ProtectedRoute>
+          }
         />
-        
-        <Route 
-          path="/" 
-          element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} 
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SettingsPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/"
+          element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />}
         />
       </Routes>
     </Router>
