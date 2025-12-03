@@ -10,7 +10,27 @@ Serializers = The translator that converts between these languages
 
 from rest_framework import serializers
 from .models import InternationalBox, Item, User, Warehouse
+from django.contrib.auth.models import User as DjangoUser
 
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id', 
+            'email', 
+            'first_name', 
+            'last_name', 
+            'role',
+            'phone',
+            'country',
+            'city',
+            'address',
+            'email_notifications',  # Add these new fields
+            'sms_notifications',
+            'timezone'
+        ]
+        read_only_fields = ['id', 'email', 'role']
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
@@ -28,7 +48,7 @@ class ItemSerializer(serializers.ModelSerializer):
 
 class InternationalBoxSerializer(serializers.ModelSerializer):
     warehouse = WarehouseSerializer(read_only=True)
-    # REMOVE customer field - it doesn't exist in your model
+
     
     class Meta:
         model = InternationalBox
