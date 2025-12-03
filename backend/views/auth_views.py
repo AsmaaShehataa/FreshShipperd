@@ -6,13 +6,14 @@ Handles login, logout, token management, and user session operations.
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.auth import get_user_model, authenticate
+from backend.serializers import UserProfileSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from backend.models.user_models import User
+User = get_user_model()
 
 
 @api_view(['POST'])
@@ -145,3 +146,54 @@ def refresh_token_view(request):
             {'error': 'User not found'},
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+@api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    """Get or update user profile"""
+    if request.method == 'GET':
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data)
+    
+    elif request.method == 'PUT':
+        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+@api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
+def user_settings(request):
+    """Get or update user settings"""
+    if request.method == 'GET':
+        # Return current user's settings
+        user = request.user
+        return Response({
+            'email_notifications': getattr(user, 'email_notifications', True),
+            'sms_notifications': getattr(user, 'sms_notifications', False),
+            'timezone': getattr(user, 'timezone', 'UTC'),
+        })
+    
+    elif request.method == 'PUT':
+        # Update user settings
+        user = request.user
+        data = request.data
+        
+        # Update settings fields if they exist on your User model
+        # You may need to add these fields to your User model first
+        if 'email_notifications' in data:
+            user.email_notifications = data['email_notifications']
+        if 'sms_notifications' in data:
+            user.sms_notifications = data['sms_notifications']
+        if 'timezone' in data:
+            user.timezone = data['timezone']
+        
+        user.save()
+        return Response({
+            'message': 'Settings updated successfully',
+            'email_notifications': getattr(user, 'email_notifications', True),
+            'sms_notifications': getattr(user, 'sms_notifications', False),
+            'timezone': getattr(user, 'timezone', 'UTC'),
+        })
