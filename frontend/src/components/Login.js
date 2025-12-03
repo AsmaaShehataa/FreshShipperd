@@ -16,16 +16,16 @@ const Login = ({ setIsAuthenticated, setUser }) => {
 
     try {
       const data = await authAPI.login(email, password);
-      
+
       // Store tokens and user data
       localStorage.setItem('access_token', data.access);
       localStorage.setItem('refresh_token', data.refresh);
       localStorage.setItem('user', JSON.stringify(data.user));
-      
+
       // Update app state
       setIsAuthenticated(true);
       setUser(data.user);
-      
+
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
@@ -54,7 +54,7 @@ const Login = ({ setIsAuthenticated, setUser }) => {
                 {error}
               </div>
             )}
-            
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -69,7 +69,7 @@ const Login = ({ setIsAuthenticated, setUser }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="you@example.com"
+                  placeholder="admin@shipperd.com"
                 />
               </div>
             </div>

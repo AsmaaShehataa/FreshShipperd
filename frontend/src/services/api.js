@@ -1,3 +1,4 @@
+// src/services/api.js
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8000/api';
@@ -55,9 +56,24 @@ api.interceptors.response.use(
   }
 );
 
+// Dashboard APIs
 export const dashboardAPI = {
   getStats: () => api.get('/stats/'),
   getBoxes: () => api.get('/boxes/'),
   getItems: () => api.get('/items/'),
   getCustomers: () => api.get('/customers/'),
+};
+
+// Profile and Settings APIs - ADD THESE
+export const profileAPI = {
+  getProfile: () => api.get('/auth/profile/'),
+  updateProfile: (data) => api.put('/auth/profile/', data),
+  getSettings: () => api.get('/auth/settings/'),
+  updateSettings: (data) => api.put('/auth/settings/', data),
+};
+
+// Auth APIs (for logout)
+export const authAPI = {
+  logout: (refreshToken) => api.post('/auth/logout/', { refresh: refreshToken }),
+  getCurrentUser: () => api.get('/auth/me/'),
 };
