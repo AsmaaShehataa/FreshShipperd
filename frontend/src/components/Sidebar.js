@@ -1,28 +1,51 @@
-// src/components/Sidebar.js - CORRECT SIDEBAR
+// src/components/Sidebar.js
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import EditProfileModal from './EditProfileModal'; // Import the modal
+import EditProfileModal from './EditProfileModal';
 
 const Sidebar = ({ user, onLogout, onProfileUpdated }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const location = useLocation();
 
-  const menuItems = [
+  // Define ALL possible menu items
+  const allMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/dashboard' },
     { id: 'boxes', label: 'International Boxes', icon: '📦', path: '/boxes' },
     { id: 'items', label: 'Items Management', icon: '📋', path: '/items' },
     { id: 'customers', label: 'Customers', icon: '👥', path: '/customers' },
+    { id: 'scan', label: 'Scan Items', icon: '📱', path: '/scan' },
+    { id: 'receive', label: 'Receive Packages', icon: '📦', path: '/receive' },
+    { id: 'users', label: 'User Management', icon: '👥', path: '/users' },
+    { id: 'reports', label: 'Reports', icon: '📊', path: '/reports' },
     { id: 'settings', label: 'Settings', icon: '⚙️', path: '/settings' },
   ];
 
   // Role-based menu filtering
-  const filteredMenuItems = menuItems.filter((item) => {
-    if (user?.role === 'employee') {
-      return ['dashboard', 'boxes', 'items', 'settings'].includes(item.id);
+  const getMenuItemsForRole = (role) => {
+    switch(role) {
+      case 'super_admin':
+        // Super Admin sees everything
+        return allMenuItems;
+        
+      case 'admin':
+        // Admin sees most things but not full system settings
+        return allMenuItems.filter(item => 
+          !['users', 'reports'].includes(item.id) // Admins can't manage users or see reports
+        );
+        
+      case 'employee':
+        // Employee sees limited menu
+        return allMenuItems.filter(item => 
+          ['dashboard', 'boxes', 'items', 'customers', 'scan', 'receive', 'settings'].includes(item.id)
+        );
+        
+      default:
+        return [];
     }
-    return true;
-  });
+  };
+
+  const filteredMenuItems = getMenuItemsForRole(user?.role);
 
   return (
     <>

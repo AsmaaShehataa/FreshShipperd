@@ -5,6 +5,7 @@ Handles login, logout, token management, and user session operations.
 """
 
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import BasePermission
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model, authenticate
 from backend.serializers import UserProfileSerializer
@@ -197,3 +198,25 @@ def user_settings(request):
             'sms_notifications': getattr(user, 'sms_notifications', False),
             'timezone': getattr(user, 'timezone', 'UTC'),
         })
+        
+
+    # Custom permission class ModelListView(ListView)
+class IsSuperAdmin(BasePermission):
+    """Allows access only to super admin users."""
+    def has_permission(self, request, view):
+        return request.user and request.user.is_super_admin()   
+class IsAdmin(BasePermission):
+    """Allows access only to admin users."""
+    def has_permission(self, request, view):
+        return request.user and request.user.is_admin()
+
+class IsEmployee(BasePermission):
+    """Allows access only to employee users."""
+    def has_permission(self, request, view):
+        return request.user and request.user.is_employee()
+
+class IsAdminOrSuperAdmin(BasePermission):
+    """Allows access to admin or super admin users."""
+    def has_permission(self, request, view):
+        return request.user and (request.user.is_admin() or request.user.is_super_admin())
+

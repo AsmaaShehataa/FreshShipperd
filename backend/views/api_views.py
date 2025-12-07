@@ -6,11 +6,13 @@ return JSON responses and are intended to be wired behind the app
 larger APIs; function-based views are used here for simplicity.
 """
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from backend.models import InternationalBox, Item, User
 from backend.models.enums import BoxStatus, UserRole
 from backend.serializers import InternationalBoxSerializer, CustomerSerializer
+from backend.views.auth_views import IsAdminOrSuperAdmin
 
 
 # Django URL life cycle:
@@ -58,3 +60,8 @@ def notifications_view(request):
     # This view is currently not in use.
     pass
     return Response({"message": "Notifications view is under construction."})
+
+@api_view(['GET'])
+@permission_classes([IsAdminOrSuperAdmin])
+def admin_only_endpoint(request):
+    return Response({"message": "Hello, Admin or Super Admin!"})
